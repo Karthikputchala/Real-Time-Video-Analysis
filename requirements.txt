@@ -1,0 +1,8 @@
+tensorflow
+mtcnn
+moviepy
+imageio-ffmpeg
+decord
+torch
+transformers
+streamlit
