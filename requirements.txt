@@ -2,8 +2,6 @@ cmake
 dlib
 face-recognition
 opencv-python
-protobuf==3.9.2
-tensorflow
 mtcnn
 moviepy
 imageio-ffmpeg
