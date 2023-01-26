@@ -1,3 +1,5 @@
+face-recognition
+opencv-python
 tensorflow
 mtcnn
 moviepy
