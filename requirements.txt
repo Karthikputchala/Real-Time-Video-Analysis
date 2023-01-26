@@ -1,5 +1,5 @@
 cmake
-dlib
+dlib==19.22.99
 face-recognition
 opencv-python
 mtcnn
