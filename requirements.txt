@@ -1,11 +1,3 @@
 cmake
 dlib
 face-recognition
-opencv-python
-mtcnn
-moviepy
-imageio-ffmpeg
-decord
-torch
-transformers
-streamlit
