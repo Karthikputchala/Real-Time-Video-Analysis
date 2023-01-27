@@ -1,2 +1,1 @@
-cmake
-dlib
+git://github.com/ageitgey/face_recognition
