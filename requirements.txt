@@ -1,5 +1,5 @@
 cmake
-dlib @ Karthikputchala/find-me/Dlib/dlib-19.22.99-cp39-cp39-win_amd64.whl
+dlib
 face-recognition
 opencv-python
 mtcnn
