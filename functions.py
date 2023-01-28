@@ -1,3 +1,4 @@
+# import all libraries 
 import os
 import cv2
 import face_recognition
