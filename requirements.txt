@@ -6,3 +6,4 @@ imageio-ffmpeg
 decord
 transformers
 streamlit
+gunicorn
