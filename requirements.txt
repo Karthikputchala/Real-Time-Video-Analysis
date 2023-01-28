@@ -1,5 +1,3 @@
-cmake
-dlib
 face-recognition
 opencv-python
 mtcnn
