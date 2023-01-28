@@ -1,4 +1,6 @@
 FROM python
 RUN pip install --upgrade pip
-RUN pip install -r Karthikputchala/find-me/requirements.txt
+RUN pip freeze > requirements.txt
+RUN find . -regex '.*requirements.txt$'
+RUN pip install -r requirements.txt
 CMD ['python','Karthikputchala/find-me/run.py']
