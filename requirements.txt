@@ -1,0 +1,10 @@
+opencv-python
+mediapipe 
+streamlit
+Pillow
+numpy
+decord
+moviepy
+transformers
+tensorflow
+torch
