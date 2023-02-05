@@ -43,25 +43,12 @@ def read_image():
     return uploaded
 
 # Gets the image location
-def image_location(none, uploaded, Image_option):
-    img_loc = ""
-    if none is True and uploaded is True:
-        img_loc = r"Uploaded_images/uploaded_image.jpg"
-    elif none is True and uploaded is False:
-        img_loc = ""
-    elif none is False and uploaded is False:
-        if Image_option == "one":
-            img_loc = r'Images/image-1.jpg'
-        elif Image_option == "two":
-            img_loc = r'Images/image-2.jpg'
-        elif Image_option == "three":
-            img_loc = r'Images/image-3.jpg'
-    return img_loc
+
 
 def input_selections():
     col1, col2 = st.columns(2)
-    video_options = ['GOT', 'PM Modi G20', 'Rouge Nation', 'RRR', 'Trump']
-    image_options = ['Jhon snow', 'PM Modi', 'Ram Charan', 'Tom Cruise', 'Trump', 'Upload an Image']
+    video_options = ['GOT', 'PM Modi G20']
+    image_options = ['Jhon snow', 'PM Modi','Upload an Image']
 
     with col1:
         video_choice = st.selectbox('Select a video to try out', video_options)
