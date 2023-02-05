@@ -1,5 +1,0 @@
-Steps: ----Installation of the Face Recognition-----
-
-1) Fist install the Face Recognition using the juypter notebook in your seperate project environment
-2) After installion open your vscode in the environment and run "import face_recognition" to check if installed 
-3) if no errors then it was perfectly installed in your local environment at Anaconda.
