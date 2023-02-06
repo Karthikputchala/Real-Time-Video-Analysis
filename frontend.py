@@ -17,10 +17,9 @@ def about():
     st.write('About: This project allows for the identification of individuals in video footage and the detection of\
          the scene happening during their presence in real-time. This technology can be implemented in a variety of settings, such as security systems,\
         retail stores, and public spaces. It utilizes advanced machine learning algorithms to analyze video footage and\
-             identify individuals based on their unique characteristics, such as facial features and body\
-                 movements.'+ " [(Github)](%s)" % Github)
+             identify individuals based on their unique characteristics, such as their facial features.'+ " [(Github)](%s)" % Github)
     st.write("Usage: The system allows for the user to either select or upload an image, and then select the video option to test for\
-         real-time person identification and scene detection.")
+         real-time person identification and their respective scene detection.")
 
 # Resizes the image
 def image_resize(image):
