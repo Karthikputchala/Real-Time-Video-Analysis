@@ -79,7 +79,7 @@ def display_result(output, time_stamps, labels):
         col1, col2 = st.columns(2)
         # headings
         with col1:
-            st.subheader('Time stamp')
+            st.subheader('Identified at (Time stamp)')
         with col2:
             st.subheader('Action recognized')
         # Details
