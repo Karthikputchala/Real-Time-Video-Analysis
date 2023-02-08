@@ -33,21 +33,32 @@ videoMAE_model = VideoMAEForVideoClassification.from_pretrained(
 
 ResNet152_model = ResNet152(include_top=False, weights='imagenet', pooling='avg')
 
+# Paths
 snipped_files_path = r"Snipped_clips"
 Uploaded_images_path = r"Uploaded_images"
-    
 frame_face_path = r"Generated data/frame_face.jpg"
 original_img_path = r'Generated data/image.jpg'
 flipped_img_path = r'Generated data/flipped_image.jpg'
 # Get the input image encodings
 
+# Checks the face in an image
 def check_for_face(image_path):
+    # Read the image from the file path
     image = cv2.imread(image_path)
+    # Use the multiprocessing-based-face-detection library to detect faces
     with mp_face_detection.FaceDetection(
-        model_selection=1, min_detection_confidence=0.5) as face_detection:
-        results = face_detection.process(cv2.cvtColor(image, cv2.COLOR_BGR2RGB))
+        # Set the model to use for face detection to model number 1
+        model_selection=1, 
+        # Set the minimum detection confidence to 0.5
+        min_detection_confidence=0.5) as face_detection:
+        # Run the face detection process
+        results = face_detection.process(
+            # Convert the image from BGR to RGB color space
+            cv2.cvtColor(image, cv2.COLOR_BGR2RGB))
+        # Return the results of the face detection and the original image
         return results, image
 
+# Get the bounding boxes of the faces
 def bounding_boxes(results):
     bboxes = []
     for detection in results.detections:
@@ -59,28 +70,47 @@ def bounding_boxes(results):
         bboxes.append(bbox)
     return bboxes
     
+# Generates the image embedding
+# The function returns the image embedding by using a pre-trained model.
 def return_image_embedding(model,img_path):
+    # Load the image with target size of (224,224)
     img = image.load_img(img_path, target_size=(224, 224))
+    # Convert the image to array
     x = image.img_to_array(img)
+    # Expand the dimensions of the image to include the batch size
     x = np.expand_dims(x, axis=0)
+    # Preprocess the image for the model input
     x = preprocess_input(x)
+    # Predict the embedding for the image
     preds = model.predict(x)
+    # Create a DataFrame for the embedding and return it
     curr_df = pd.DataFrame(preds[0]).T
     return curr_df
 
-def input_image_encodings(bboxes,image):
+def input_image_encodings(bboxes, image):
+    """
+    Calculates the image embeddings for original and flipped image.
+
+    Parameters:
+        bboxes (list): list of bounding boxes for each face detected
+        image (np.array): numpy array of the image
+
+    Returns:
+        embeddings (list): list of image embeddings (original and flipped)
+    """
+    embeddings = []
     for box in bboxes:
-       x,y,w,h = box
-       x, y, w, h = [int(val * image.shape[1]) for val in [x, y, w, h]]
-       print(x,y,w,h)
-       face = image[y:y+h, x:x+w] 
-       flipped = cv2.flip(face, 1)
-       cv2.imwrite(original_img_path, face)
-       cv2.imwrite(flipped_img_path, flipped)
-       original_embedding = return_image_embedding(ResNet152_model,original_img_path).values[0]
-       flipped_embedding = return_image_embedding(ResNet152_model,flipped_img_path).values[0]
-       embeddings = [original_embedding,flipped_embedding]
-       return embeddings
+        x, y, w, h = box
+        x, y, w, h = [int(val * image.shape[1]) for val in [x, y, w, h]]
+        face = image[y:y+h, x:x+w]
+        flipped = cv2.flip(face, 1)
+        cv2.imwrite(original_img_path, face)
+        cv2.imwrite(flipped_img_path, flipped)
+        original_embedding = return_image_embedding(ResNet152_model, original_img_path).values[0]
+        flipped_embedding = return_image_embedding(ResNet152_model, flipped_img_path).values[0]
+        embeddings.append([original_embedding, flipped_embedding])
+    return embeddings
+
 
 # Extracts the image from the frame
 def cropped_face(frame, result):
