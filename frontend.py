@@ -27,50 +27,79 @@ def image_resize(image):
     small_image = image.resize(small_size)
     return small_image
 
-# Function to upload and read the image
+# Reads the uploaded image
 def read_image():
+    # Check if the Uploaded_images_path directory exists
     if not os.path.exists(Uploaded_images_path):
+        # If the directory doesn't exist, create it
         os.makedirs(Uploaded_images_path)
+    # Allow the user to upload a file using a file uploader from the Streamlit library
     uploaded_file = st.file_uploader("Choose an image...", type=["jpg", "png", "jpeg"])
+    # Initialize a flag to track if an image was uploaded
     uploaded = False
+    # If a file was uploaded
     if uploaded_file is not None:
+        # Open the image using the Pillow library
         image = Image.open(uploaded_file)
+        # Convert the image to a numpy array
         image_array = np.array(image)
+        # Save the image as a jpeg to the Uploaded_images_path directory
         cv2.imwrite(r"Uploaded_images/uploaded_image.jpg", image_array)
+        # Display the image using the Streamlit library
         st.image(image_array)
+        # Set the uploaded flag to True
         uploaded = True
+    # Return the value of the uploaded flag
     return uploaded
 
-# Gets the image location
 
-
+# Gets the Video and image location
 def input_selections():
+    # Create two columns in the Streamlit app using the `st.columns` function
     col1, col2 = st.columns(2)
-    video_options = ['GOT', 'PM Modi G20']
-    image_options = ['Jhon snow', 'PM Modi','Upload an Image']
+    # Define a list of video options to display in a selectbox
+    video_options = ['Ranveer', 'Tom Holland']
+    # Define a list of image options to display in a selectbox
+    image_options = ['Ranveer', 'Tom Holland','Upload an Image']
 
     with col1:
+        # Allow the user to select a video from the video_options list using a selectbox
         video_choice = st.selectbox('Select a video to try out', video_options)
+        # Get the location of the selected video
         video_loc = f"Videos/{video_choice}.mp4"
-        print(video_loc)
+        # Open the video file and read its contents into memory
         with open(video_loc, 'rb') as video:
             video_bytes = video.read()
+        # Display the video in the Streamlit app using the `st.video` function
         st.video(video_bytes)
 
     with col2:
+        # Allow the user to select an image from the image_options list using a selectbox
         image_choice = st.selectbox('Select an image to try out', image_options)
+        # If the user selects the "Upload an Image" option
         if image_choice == 'Upload an Image':
+            # Initialize an empty location for the uploaded image
             img_loc = ''
+            # Call the `read_image` function to allow the user to upload an image
             uploaded = read_image()
+            # If an image was uploaded
             if uploaded:
+                # Set the location of the uploaded image
                 img_loc = r"Uploaded_images/uploaded_image.jpg"
+        # If the user selects one of the predefined images
         else:
+            # Get the location of the selected image
             img_loc = f"Images/{image_choice}.jpg"
+            # Open the image using the Pillow library
             with Image.open(img_loc) as image:
+                # Call the `image_resize` function on the image
                 small_image = image_resize(image)
+            # Display the resized image in the Streamlit app using the `st.image` function
             st.image(small_image)
 
+    # Return the locations of the selected video and image
     return video_loc, img_loc
+
 
 # Displays the results to the User.
 def display_result(output, time_stamps, labels):
