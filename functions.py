@@ -17,6 +17,7 @@ from tensorflow.keras.preprocessing import image
 from tensorflow.keras import metrics
 
 import mediapipe as mp
+import streamlit as st
 
 mp_face_detection = mp.solutions.face_detection
 
@@ -106,6 +107,8 @@ def input_image_encodings(bboxes, image):
         flipped = cv2.flip(face, 1)
         cv2.imwrite(original_img_path, face)
         cv2.imwrite(flipped_img_path, flipped)
+        image = Image.open(original_img_path)
+        st.image(image, caption='Sunrise by the mountains')
         original_embedding = return_image_embedding(ResNet152_model, original_img_path).values[0]
         flipped_embedding = return_image_embedding(ResNet152_model, flipped_img_path).values[0]
         embeddings.append([original_embedding, flipped_embedding])
