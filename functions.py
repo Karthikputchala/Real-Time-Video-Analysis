@@ -103,7 +103,7 @@ def input_image_encodings(bboxes, image):
     for box in bboxes:
         x, y, w, h = box
         x, y, w, h = [int(val * image.shape[1]) for val in [x, y, w, h]]
-        face = image[y:h, x:w]
+        face = image[y:y+h, x:x+w]
         flipped = cv2.flip(face, 1)
         cv2.imwrite(original_img_path, face)
         cv2.imwrite(flipped_img_path, flipped)
