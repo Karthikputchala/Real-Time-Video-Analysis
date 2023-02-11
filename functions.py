@@ -102,19 +102,16 @@ def input_image_encodings(bboxes, image):
     Returns:
         embeddings (list): list of image embeddings (original and flipped)
     """
-    embeddings = []
-    for box in bboxes:
-        x, y, w, h = box
-        x, y, w, h = [int(val * image.shape[1]) for val in [x, y, w, h]]
-        face = image[y:y+h, x:x+w]
-        flipped = cv2.flip(face, 1)
-        cv2.imwrite(original_img_path, face)
-        cv2.imwrite(flipped_img_path, flipped)
-        image = Image.open(original_img_path)
-        st.image(image, caption='Sunrise by the mountains')
-        original_embedding = return_image_embedding(ResNet152_model, original_img_path).values[0]
-        flipped_embedding = return_image_embedding(ResNet152_model, flipped_img_path).values[0]
-        embeddings.append([original_embedding, flipped_embedding])
+   embeddings = []
+    x, y, w, h = bboxes[0]
+    face = image[y:y+h, x:x+w]
+    flipped = cv2.flip(face, 1)
+    cv2.imwrite(original_img_path, face)
+    cv2.imwrite(flipped_img_path, flipped)
+    original_embedding = return_image_embedding(ResNet152_model, original_img_path).values[0]
+    flipped_embedding = return_image_embedding(ResNet152_model, flipped_img_path).values[0]
+    embeddings.append(original_embedding)
+    embeddings.append(flipped_embedding)
     return embeddings
 
 def cosine_similarity(a, b):
