@@ -102,7 +102,7 @@ def input_image_encodings(bboxes, image):
     Returns:
         embeddings (list): list of image embeddings (original and flipped)
     """
-   embeddings = []
+    embeddings = []
     x, y, w, h = bboxes[0]
     face = image[y:y+h, x:x+w]
     flipped = cv2.flip(face, 1)
