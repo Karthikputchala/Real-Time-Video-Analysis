@@ -58,9 +58,9 @@ def input_selections():
     # Create two columns in the Streamlit app using the `st.columns` function
     col1, col2 = st.columns(2)
     # Define a list of video options to display in a selectbox
-    video_options = ['Ranveer singh', 'Tom Holland']
+    video_options = ['Tom Holland']
     # Define a list of image options to display in a selectbox
-    image_options = ['Ranveer singh', 'Tom Holland','Upload an Image']
+    image_options = ['Tom Holland','Upload an Image']
 
     with col1:
         # Allow the user to select a video from the video_options list using a selectbox
