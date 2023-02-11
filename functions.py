@@ -40,36 +40,39 @@ Uploaded_images_path = r"Uploaded_images"
 frame_face_path = r"Generated data/frame_face.jpg"
 original_img_path = r'Generated data/image.jpg'
 flipped_img_path = r'Generated data/flipped_image.jpg'
-# Get the input image encodings
 
-# Checks the face in an image
-def check_for_face(image_path):
-    # Read the image from the file path
-    image = cv2.imread(image_path)
-    # Use the multiprocessing-based-face-detection library to detect faces
-    with mp_face_detection.FaceDetection(
-        # Set the model to use for face detection to model number 1
-        model_selection=1, 
-        # Set the minimum detection confidence to 0.5
-        min_detection_confidence=0.5) as face_detection:
-        # Run the face detection process
-        results = face_detection.process(
-            # Convert the image from BGR to RGB color space
-            cv2.cvtColor(image, cv2.COLOR_BGR2RGB))
-        # Return the results of the face detection and the original image
-        return results, image
+# Detects the face in an image    
+def get_results(image):
+    with mp_face_detection.FaceDetection(model_selection=1, min_detection_confidence=0.5) as face_detection:
+        # Convert the BGR image to RGB and process it with MediaPipe Face Detection.
+        results = face_detection.process(cv2.cvtColor(image, cv2.COLOR_BGR2RGB))
+    return results
 
 # Get the bounding boxes of the faces
-def bounding_boxes(results):
+def bounding_boxes(results,image):
     bboxes = []
     for detection in results.detections:
-        xmin = detection.location_data.relative_bounding_box.xmin
-        ymin = detection.location_data.relative_bounding_box.ymin
-        width = detection.location_data.relative_bounding_box.width
-        height = detection.location_data.relative_bounding_box.height
+        xmin = int(detection.location_data.relative_bounding_box.xmin * image.shape[1])
+        ymin = int(detection.location_data.relative_bounding_box.ymin * image.shape[0])
+        width = int(detection.location_data.relative_bounding_box.width * image.shape[1])
+        height = int(detection.location_data.relative_bounding_box.height * image.shape[0])
         bbox = (xmin, ymin, width, height)
         bboxes.append(bbox)
     return bboxes
+
+#crop the face from the image
+def crop_face(box,image):
+    x, y, w, h = box
+    face = image[y:y+h, x:x+w]
+    return face
+
+# write the face_from_frame to a path
+def write_frame_face(face):
+    image = Image.fromarray(face)
+    # Convert the PIL Image object to a numpy array
+    image = np.array(image)
+        # Save the extracted image to file using cv2
+    cv2.imwrite(frame_face_path, image)
     
 # Generates the image embedding
 # The function returns the image embedding by using a pre-trained model.
@@ -114,28 +117,6 @@ def input_image_encodings(bboxes, image):
         embeddings.append([original_embedding, flipped_embedding])
     return embeddings
 
-
-# Extracts the image from the frame
-def cropped_face(frame, result):
-    # x1, y1, width, height = result['box']
-    # Unpack the result tuple into x1, y1, width, height
-    x1, y1, width, height = result
-    # Get the absolute values of x1 and y1
-    x1, y1 = abs(x1), abs(y1)
-    # Calculate the x2 and y2 coordinates
-    x2, y2 = x1 + width, y1 + height
-    # Convert the frame from BGR to RGB
-    #img = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-    # Extract the face from the frame using numpy slicing
-    face = frame[y1:y2, x1:x2]
-    # Create a PIL Image object from the extracted face
-    image = Image.fromarray(face)
-    # Convert the PIL Image object to a numpy array
-    image = np.array(image)
-    # Save the extracted image to file using cv2
-    cv2.imwrite(frame_face_path, image)
-    #return image
-
 def cosine_similarity(a, b):
     cos_sim = np.dot(a, b)/(np.linalg.norm(a)*np.linalg.norm(b))
     return cos_sim
@@ -160,15 +141,14 @@ def check_for_person(cap,fps,inputImg_embeddings):
             # Append the result of the comparison to the results list
             results.append(result)
         # Check if all the comparison results are True
-        if len(results)>1:
-            for val in results:
-                if val > 0.7:
-                    # Get the timestamp of the current frame
-                    timestamp = cap.get(cv2.CAP_PROP_POS_FRAMES)
-                    # Calculate the seconds from the timestamp and fps
-                    seconds = timestamp/int(fps)
-                    # Set the person_present variable to True
-                    person_present = True
+        print(results)
+        if all(x > 0.725 for x in results):
+            # Get the timestamp of the current frame
+            timestamp = cap.get(cv2.CAP_PROP_POS_FRAMES)
+            # Calculate the seconds from the timestamp and fps
+            seconds = timestamp/int(fps)
+            # Set the person_present variable to True
+            person_present = True
         else:
             # If the person is not present, set seconds to 0 and person_present to False
             seconds = 0
@@ -218,22 +198,18 @@ def get_seconds(filepath, encoddings):
         # Get the timestamp of the current frame
         timestamp = cap.get(cv2.CAP_PROP_POS_FRAMES)
         if ret is True and timestamp % int(fps) == 0:
-            # Convert the frame to grayscale
-            gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-            # Detect faces in the frame
-            results = face_cascade.detectMultiScale(gray, 1.1, 4)
-            if len(results) > 0:
-                # Iterate through the detected faces
-                for result in results:
-                    # Extract the image of the face from the frame
-                    cropped_face(frame, result)
-                    #extract_image_from_Frame(frame, result)
-                    # Check if the face belongs to a person in the known encodings
-                    seconds, person_present = check_for_person(cap,fps,encoddings)
-                    # If the person is present, append the timestamp to the list
-                    if person_present is True:
-                        list_of_seconds.append(round(seconds))
-        # Check if the video has ended
+            results = get_results(frame)
+            if results.detections:
+                boxes = bounding_boxes(results,frame)
+                for box in boxes:
+                    face = crop_face(box,frame)
+                    if len(face) !=0:
+                        write_frame_face(face)
+                        # Check if the face belongs to a person in the known encodings
+                        seconds, person_present = check_for_person(cap,fps,encoddings)
+                        # If the person is present, append the timestamp to the list
+                        if person_present is True:
+                            list_of_seconds.append(round(seconds))
         if timestamp/int(fps) >= length_in_seconds:
             break
     # Close all windows
@@ -241,14 +217,14 @@ def get_seconds(filepath, encoddings):
         cv2.destroyAllWindows()
     except:
         pass
-    print(list_of_seconds)
     # Modify the seconds
-    list_of_seconds = modify_seconds(list_of_seconds)
-    print(list_of_seconds)
-    # Remove duplicates and sort the list
-    list_of_seconds = sorted(list(set(list_of_seconds)))
-    print(list_of_seconds)
-    # Return the list of seconds
+    if len(list_of_seconds)>1:
+        list_of_seconds = modify_seconds(list_of_seconds)
+        # Remove duplicates and sort the list
+        list_of_seconds = sorted(list(set(list_of_seconds)))
+        # Return the list of seconds
+    else:
+        list_of_seconds = []
     return list_of_seconds
 
 # Groups the time stamps to a clip length 
@@ -425,20 +401,23 @@ def app(input_image_path,video_path,snipped_folder_path):
     labels = []
     time_stamps = []
     list_of_extractedFilePaths = []
-    results, image = check_for_face(input_image_path)
+    # Read the image from the file path
+    image = cv2.imread(input_image_path)
+    results = get_results(image)
     if results.detections:
-        bboxes = bounding_boxes(results)
-        embeddings = input_image_encodings(bboxes,image)
-        list_of_seconds = get_seconds(video_path, embeddings)
-        print(list_of_seconds)
-        if len(list_of_seconds)>0:
-            grouped_list_of_seconds = group_the_seconds(list_of_seconds)
-            print(grouped_list_of_seconds)
-            time_stamps = get_timeStamps(grouped_list_of_seconds)
-            list_of_extractedFilePaths = extract_clips(video_path, grouped_list_of_seconds)
-            labels = gather_all_labels(snipped_folder_path)
+        bboxes = bounding_boxes(results,image)
+        if len(bboxes)==1:
+            embeddings = input_image_encodings(bboxes,image)
+            list_of_seconds = get_seconds(video_path, embeddings)
+            if len(list_of_seconds)>0:
+                grouped_list_of_seconds = group_the_seconds(list_of_seconds)
+                time_stamps = get_timeStamps(grouped_list_of_seconds)
+                list_of_extractedFilePaths = extract_clips(video_path, grouped_list_of_seconds)
+                labels = gather_all_labels(snipped_folder_path)
+            else:
+                output = "Person is not present in the video"
         else:
-            output = "Person is not present in the video"
+            output = "Upload an image with single face"
     else:
         output = 'Upload a correct image of the person face'
     delete()
